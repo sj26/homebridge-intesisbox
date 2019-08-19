@@ -1,0 +1,28 @@
+{
+  "name": "homebridge-intesisbox",
+  "version": "0.0.1",
+  "description": "Homebridge plugin for Intesisbox",
+  "author": "Samuel Cochran",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sj26/homebridge-intesisbox.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sj26/homebridge-intesisbox/issues"
+  },
+  "keywords": [
+    "homebridge",
+    "homebridge-plugin",
+    "intesisbox",
+    "airconditioning",
+    "homekit",
+    "fujitsu"
+  ],
+  "engines": {
+    "node": ">=0.10.0",
+    "homebridge": ">=0.4.0"
+  },
+  "homepage": "https://github.com/sj26/homebridge-intesisbox",
+  "main": "index.js"
+}
