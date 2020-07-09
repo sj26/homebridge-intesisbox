@@ -39,8 +39,8 @@ class Intesisbox extends EventEmitter {
     this.informationService = new Service.AccessoryInformation();
 
     // Required Characteristics
-    this.informationService.setCharacteristic(Characteristic.Manufacturer, "Intesis");
-    this.informationService.setCharacteristic(Characteristic.Name, this.name);
+    this.informationService.updateCharacteristic(Characteristic.Manufacturer, "Intesis");
+    this.informationService.updateCharacteristic(Characteristic.Name, this.name);
 
     // Cannot be done with the hardware:
     // (although it would be great to be able to flash the LED or something)
@@ -138,10 +138,10 @@ class Intesisbox extends EventEmitter {
       }.bind(this));
 
     // Intesisbox cannot be changed, and does not display the temperature
-    this.thermostatService.setCharacteristic(Characteristic.TemperatureDisplayUnits, Characteristic.TemperatureDisplayUnits.CELCIUS);
+    this.thermostatService.updateCharacteristic(Characteristic.TemperatureDisplayUnits, Characteristic.TemperatureDisplayUnits.CELCIUS);
 
     // Optional Characteristics
-    this.thermostatService.setCharacteristic(Characteristic.Name, this.name);
+    this.thermostatService.updateCharacteristic(Characteristic.Name, this.name);
     // Characteristic.CurrentRelativeHumidity
     // Characteristic.TargetRelativeHumidity
     // Characteristic.CoolingThresholdTemperature
@@ -241,10 +241,10 @@ class Intesisbox extends EventEmitter {
 
     this.identity = {model, mac, ip, protocol, version, rssi, name};
 
-    this.informationService.setCharacteristic(Characteristic.Model, model);
-    this.informationService.setCharacteristic(Characteristic.SerialNumber, mac);
-    this.informationService.setCharacteristic(Characteristic.Name, name);
-    this.informationService.setCharacteristic(Characteristic.FirmwareRevision, version);
+    this.informationService.updateCharacteristic(Characteristic.Model, model);
+    this.informationService.updateCharacteristic(Characteristic.SerialNumber, mac);
+    this.informationService.updateCharacteristic(Characteristic.Name, name);
+    this.informationService.updateCharacteristic(Characteristic.FirmwareRevision, version);
   }
 
   onINFO(name, value) {
@@ -258,6 +258,7 @@ class Intesisbox extends EventEmitter {
         this.log("Device turned ON")
       } else if (value == "OFF") {
         this.log("Device turned OFF")
+        this.thermostatService.updateCharacteristic(Characteristic.TargetHeatingCoolingState, Characteristic.TargetHeatingCoolingState.OFF);
       } else {
         this.log.warn("Unknown ONOFF value:", value)
       }
@@ -265,10 +266,19 @@ class Intesisbox extends EventEmitter {
       this.state.mode = value;
       if (value == "AUTO" ) {
         this.log("Device set to AUTO mode")
+        if (this.state.onoff == "ON") {
+          this.thermostatService.updateCharacteristic(Characteristic.TargetHeatingCoolingState, Characteristic.TargetHeatingCoolingState.AUTO);
+        }
       } else if (value == "HEAT") {
         this.log("Device set to HEAT mode")
+        if (this.state.onoff == "ON") {
+          this.thermostatService.updateCharacteristic(Characteristic.TargetHeatingCoolingState, Characteristic.TargetHeatingCoolingState.HEAT);
+        }
       } else if (value == "COOL") {
         this.log("Device set to COOL mode")
+        if (this.state.onoff == "ON") {
+          this.thermostatService.updateCharacteristic(Characteristic.TargetHeatingCoolingState, Characteristic.TargetHeatingCoolingState.COOL);
+        }
       } else if (value == "FAN") {
         this.log("Device set to FAN mode (unsupported in HomeKit)")
       } else if (value == "DRY") {
@@ -279,6 +289,7 @@ class Intesisbox extends EventEmitter {
     } else if (name == "SETPTEMP") {
       this.state.setptemp = value;
       this.log("Device target temperature set to:", value);
+      this.thermostatService.updateCharacteristic(Characteristic.TargetTemperature, parseInt(value) / 10);
     } else if (name == "FANSP") {
       this.state.fansp = value;
       this.log("Device fanspeed set to:", value);
@@ -297,6 +308,7 @@ class Intesisbox extends EventEmitter {
     } else if (name == "AMBTEMP") {
       this.state.ambtemp = value;
       this.log("Device ambient temperature now:", value);
+      this.thermostatService.updateCharacteristic(Characteristic.CurrentTemperature, parseInt(value) / 10);
     }
   }
 
