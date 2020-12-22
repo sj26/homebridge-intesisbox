@@ -146,10 +146,93 @@ class Intesisbox extends EventEmitter {
     // Characteristic.TargetRelativeHumidity
     // Characteristic.CoolingThresholdTemperature
     // Characteristic.HeatingThresholdTemperature
+    
+    this.fanService = new Service.Fan();
+
+    this.fanService.getCharacteristic(Characteristic.TargetFanState)
+    .on("get", function(callback) {
+
+      if (this.state.fansp) {
+        switch (this.state.fansp) {
+          case 'AUTO': // auto
+            callback(null, '1');
+            break;
+          default:
+          callback(null, '0');
+        }
+      } else {
+        callback(communicationError);
+      }
+
+    }.bind(this))
+    .on("set", function(state, callback, context) {
+
+     var FANSP;
+ 
+      if (state == '1') {
+        this.fanService.updateCharacteristic(Characteristic.RotationSpeed, 100);
+        FANSP = 'AUTO';
+      } else {
+        this.fanService.updateCharacteristic(Characteristic.RotationSpeed, 100);
+        FANSP = '4';
+      }
+ 
+     this.sendSET("FANSP", FANSP, function() { callback(); });
+
+    }.bind(this));
+
+    this.fanService.getCharacteristic(Characteristic.RotationSpeed)
+    .setProps({
+      minStep: 25
+    })
+    .on("get", function(callback) {
+
+      if (this.state.fansp) {
+        switch (this.state.fansp) {
+          case '1': // low
+            callback(null, 25);
+            break;
+          case '2': // normal
+            callback(null, 50);
+            break;
+          case '3': // high
+            callback(null, 75);
+            break;
+          case '4': // max
+            callback(null, 100);
+            break;
+          default:
+            callback(null, 0);
+        }
+      } else {
+        callback(communicationError);
+      }
+      
+    }.bind(this))
+    .on("set", function(speed, callback, context) {
+      
+      var FANSP;
+      
+      if (speed <= 25) {
+        FANSP = '1';
+      } else if (speed <= 50) {
+        FANSP = '2';
+      } else if (speed <= 75) {
+        FANSP = '3';
+      } else if (speed <= 100) {
+        FANSP = '4';
+      }
+
+      this.fanService.updateCharacteristic(Characteristic.TargetFanState, 0);
+
+      this.sendSET("FANSP", FANSP, function() { callback(); });
+
+    }.bind(this));
 
     this.services = [
       this.informationService,
       this.thermostatService,
+      this.fanService,
     ];
 
     // Device communications and handlers
